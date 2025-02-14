@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_REPO = "dockerrk/my-app"
+        DOCKER_HUB_REPO = "dockerrk11/my-app"
     }
 
     stages {
