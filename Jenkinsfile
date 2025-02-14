@@ -2,36 +2,40 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "rk-react-app"
-        IMAGE_TAG = "latest"
-        AWS_ACCOUNT_ID = "<your-aws-account-id>"
-        AWS_REGION = "us-east-1"
-        ECR_REPO = "react-app-repo"
+        DOCKER_HUB_REPO = "dockerrk/my-app"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-repo/react-app-deployment.git'
+                git branch: 'main', 
+                    credentialsId: 'github-credentials', 
+                    url: 'https://github.com/ritikkorde/devops-ci-cd-project.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+                    sh "docker build -t $DOCKER_HUB_REPO:latest ."
                 }
             }
         }
 
-        stage('Push to ECR') {
+        stage('Login to Docker Hub') {
             steps {
                 script {
-                    sh """
-                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-                    docker tag $IMAGE_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-                    docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-                    """
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    }
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    sh "docker push $DOCKER_HUB_REPO:latest"
                 }
             }
         }
@@ -39,10 +43,14 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh "kubectl apply -f k8s-deployment.yaml"
+                    withCredentials([file(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
+                        sh """
+                        kubectl apply -f k8s-deployment.yaml
+                        kubectl apply -f k8s-service.yaml
+                        """
+                    }
                 }
             }
         }
     }
 }
-
