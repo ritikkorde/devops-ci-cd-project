@@ -23,4 +23,3 @@ COPY --from=backend /app /backend
 COPY --from=frontend /app /frontend
 
 CMD ["node", "/backend/server.js"]
-
