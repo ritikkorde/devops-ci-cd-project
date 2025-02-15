@@ -43,11 +43,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                      sh """
-                    kubectl apply -f k8s-deployment.yaml
-                    kubectl apply -f k8s-service.yaml
-                    """
-                
+                  withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh """
+                        aws eks --region <aws-region> update-kubeconfig --name <eks-cluster-name>
+                        kubectl apply -f k8s-deployment.yaml
+                        kubectl apply -f k8s-service.yaml
+                    }
                 }
             }
         }
