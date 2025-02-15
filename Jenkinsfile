@@ -46,7 +46,7 @@ pipeline {
                     // Use the AWS credentials for EKS access
                     withAWS(credentials: 'aws-credentials') {
                         sh """
-                        aws eks --region <aws-region> update-kubeconfig --name <eks-cluster-name>
+                        aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
                         kubectl apply -f k8s-deployment.yaml
                         kubectl apply -f k8s-service.yaml
                         """
