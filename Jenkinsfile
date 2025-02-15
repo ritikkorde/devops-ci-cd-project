@@ -43,7 +43,8 @@ pipeline {
         stage('AWS EKS Kubeconfig') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    // Use the AWS credentials for EKS access
+                    withAWS(credentials: 'aws-credentials') {
                         sh """
                         aws eks --region <aws-region> update-kubeconfig --name <eks-cluster-name>
                         kubectl apply -f k8s-deployment.yaml
