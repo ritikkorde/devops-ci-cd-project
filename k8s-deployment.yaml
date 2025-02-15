@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: react-app
-          image: dockerrk11/my-app:latest
+          image: dockerrk11/my-app:latest  # Make sure to use your Docker Hub image here
           ports:
             - containerPort: 80
 ---
@@ -30,4 +30,3 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
-
